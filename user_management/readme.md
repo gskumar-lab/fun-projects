@@ -1,6 +1,7 @@
 # 🛠️ User Management Bash Script
 
-**Effortlessly manage user accounts on your Linux system with this feature-packed Bash script!** This tool provides a menu-driven interface for managing users effectively, making routine administrative tasks quick, reliable, and secure.
+**Effortlessly manage user accounts on your Linux system with this feature-packed Bash script!** 
+This tool provides a menu-driven interface for managing users effectively, making routine administrative tasks quick, reliable, and secure.
 
 ---
 
