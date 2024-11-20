@@ -1,3 +1,5 @@
+### **AC3-Optimizer**
+
 ### **Batch Audio Conversion for Media Files**
 
 This script is designed to handle batch audio conversion for movie files, ensuring compatibility with audio systems that support **AC3 (Dolby Digital)** up to 6 channels. It processes files with incompatible audio formats such as **E-AC3**, **DTS**, and other multi-channel formats, converting them to AC3 while preserving all other media components, including video, subtitles, and metadata.
@@ -40,7 +42,7 @@ This script is designed to handle batch audio conversion for movie files, ensuri
     
     ```bash
     git clone https://github.com/gskumar-lab/fun-projects.git
-    cd audio-conversion-script
+    cd AC3-Optimizer
     
     ```
     
@@ -49,7 +51,7 @@ This script is designed to handle batch audio conversion for movie files, ensuri
 3. **Run the Script**:
     
     ```bash
-    ./convert_audio.sh
+    ./AC3-Optimizer.sh
     
     ```
     
