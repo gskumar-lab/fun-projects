@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # 🛠️ User Management Bash Script
 
 **Effortlessly manage user accounts on your Linux system with this feature-packed Bash script!** This tool provides a menu-driven interface for managing users effectively, making routine administrative tasks quick, reliable, and secure.
@@ -185,4 +185,3 @@ Feel free to contribute to this project by:
 - Writing tests or documentation.
 
 To contribute, fork the repository, create a new branch for your changes, and submit a pull request.
->>>>>>> 649e8a4ef2db09b3e0d653cc29094ea555c16667
