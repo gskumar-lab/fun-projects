@@ -22,44 +22,37 @@ for MOVIE in "$INPUT_DIR"/*; do
 
     echo "Processing: $MOVIE"
 
+    # Extract audio codec and channel count information
+    AUDIO_CODEC=$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=nw=1:nk=1 "$MOVIE")
+    CHANNELS=$(ffprobe -v error -select_streams a:0 -show_entries stream=channels -of default=nw=1:nk=1 "$MOVIE")
+
     # Define the output file path
     BASENAME=$(basename "$MOVIE")
     OUTPUT_MOVIE="$OUTPUT_DIR/${BASENAME%.*} (AC3).${EXT}"
 
-    # Extract information about audio streams
-    MAP_AUDIO_STREAMS=()
-    STREAM_INDEX=0
-    CONVERT_NEEDED=false
-    while IFS= read -r STREAM_INFO; do
-        AUDIO_CODEC=$(echo "$STREAM_INFO" | cut -d, -f1)
-        CHANNELS=$(echo "$STREAM_INFO" | cut -d, -f2)
+    if [[ "$AUDIO_CODEC" == "eac3" || ( "$CHANNELS" -ge 6 && "$AUDIO_CODEC" != "ac3" ) ]]; then
+        echo "E-AC3 or non-AC3 6+ channels detected. Converting to AC3 (6 channels)..."
+        
+        # Extract and convert audio to AC3 (6 channels)
+        AUDIO_STREAM="$TEMP_DIR/audio.ac3"
+        ffmpeg -i "$MOVIE" -vn -c:a ac3 -b:a 640k -ac 6 "$AUDIO_STREAM" -y
 
-        if [[ "$AUDIO_CODEC" == "eac3" || "$CHANNELS" -gt 6 || ( "$CHANNELS" -ge 6 && "$AUDIO_CODEC" != "ac3" ) ]]; then
-            echo "Audio stream $STREAM_INDEX: Conversion needed (codec=$AUDIO_CODEC, channels=$CHANNELS)."
-            # Convert this stream to AC3 (6 channels)
-            AUDIO_OUTPUT="$TEMP_DIR/audio_$STREAM_INDEX.ac3"
-            ffmpeg -i "$MOVIE" -map 0:a:$STREAM_INDEX -c:a ac3 -b:a 640k -ac 6 "$AUDIO_OUTPUT" -y
-            MAP_AUDIO_STREAMS+=("-map $AUDIO_OUTPUT")
-            CONVERT_NEEDED=true
-        else
-            echo "Audio stream $STREAM_INDEX: Compatible. Copying without changes."
-            MAP_AUDIO_STREAMS+=("-map 0:a:$STREAM_INDEX")
-        fi
-        STREAM_INDEX=$((STREAM_INDEX + 1))
-    done < <(ffprobe -v error -show_entries stream=index,codec_name,channels -select_streams a \
-               -of csv=p=0 "$MOVIE")
-
-    # Build the final FFmpeg command
-    if [[ "$CONVERT_NEEDED" == true ]]; then
-        echo "Merging converted audio streams with video and subtitles..."
-        ffmpeg -i "$MOVIE" "${MAP_AUDIO_STREAMS[@]}" \
-            -map 0:v -map 0:s? -map 0:t? \
-            -c:v copy -c:s copy -c:t copy \
+        # Merge video, converted audio, and subtitle streams
+        ffmpeg -i "$MOVIE" -i "$AUDIO_STREAM" \
+            -map 0:v -map 1:a -map 0:s? -map 0:t? \
+            -c:v copy -c:a copy -c:s copy -c:t copy \
             "$OUTPUT_MOVIE" -y
+
         echo "Converted and saved: $OUTPUT_MOVIE"
-    else
-        echo "No incompatible audio streams found. Copying original file."
+
+    elif [[ "$AUDIO_CODEC" == "ac3" && "$CHANNELS" -eq 6 ]]; then
+        echo "AC3 with 6 channels detected. No conversion needed."
         cp "$MOVIE" "$OUTPUT_MOVIE"
+        echo "Saved: $OUTPUT_MOVIE"
+
+    else
+        echo "Audio codec is not E-AC3, AC3 (6 channels), or 6+ channels. Moving without modification."
+        mv "$MOVIE" "$OUTPUT_DIR/"
     fi
 done
 
@@ -67,3 +60,4 @@ done
 rm -rf "$TEMP_DIR"
 
 echo "Processing complete!"
+
